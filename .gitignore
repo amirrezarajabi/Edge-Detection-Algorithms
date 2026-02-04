@@ -9,3 +9,5 @@ __pycache__/
 *.pyzw
 *.pyzwz
 commands.txt
+BSDS500/
+show*

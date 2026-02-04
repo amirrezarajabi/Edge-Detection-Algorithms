@@ -252,6 +252,31 @@ def main() -> None:
     output_path = os.path.join(args.output_dir, os.path.basename(args.input_image))
     save_grayscale_image(edges.astype(np.uint8), output_path)
 
+def run_canny_edge(image_path: str, low_threshold: float, high_threshold: float) -> np.ndarray:
+    threads = 8
+    kernel_size = 5
+    sigma = 1.4
+    low_threshold = 50.0
+    high_threshold = 100.0
+    image = load_grayscale_image(image_path)
+    gaussian = gaussian_kernel(kernel_size, sigma)
+    smoothed = multi_threaded_convolution(image, gaussian, threads)
+    kernel_x, kernel_y = sobel_kernels()
+    grad_x = multi_threaded_convolution(smoothed, kernel_x, threads)
+    grad_y = multi_threaded_convolution(smoothed, kernel_y, threads)
+    magnitude = np.hypot(grad_x, grad_y)
+    max_val = np.max(magnitude)
+    if max_val > 0:
+        magnitude = (magnitude / max_val) * 255.0
+    direction = np.degrees(np.arctan2(grad_y, grad_x))
+    suppressed = non_maximum_suppression(magnitude, direction)
+    thresholded, weak, strong = double_threshold(
+        suppressed,
+        low_threshold,
+        high_threshold,
+    )
+    edges = hysteresis(thresholded, weak, strong)
+    return edges.astype(np.float32) / 255.0
 
 if __name__ == "__main__":
     main()

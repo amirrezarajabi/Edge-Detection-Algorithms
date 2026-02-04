@@ -175,6 +175,19 @@ def main() -> None:
     output_image = os.path.join(args.output_dir, os.path.basename(args.input_image))
     save_grayscale_image(edges, output_image)
 
+def run_log_edge(image_path: str, threshold: float) -> np.ndarray:
+    sigma = 1.4
+    kernel_size = 5
+    threads = 8
+    image = load_grayscale_image(image_path)
+    edges = apply_log(
+        image=image,
+        sigma=sigma,
+        kernel_size=kernel_size,
+        threshold=threshold,
+        num_threads=threads,
+    )
+    return edges.astype(np.float32) / 255.0
 
 if __name__ == "__main__":
     main()

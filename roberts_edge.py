@@ -119,6 +119,17 @@ def main() -> None:
     output_path = os.path.join(args.output_dir, os.path.basename(args.input_image))
     save_grayscale_image(edges, output_path)
 
+def run_roberts_edge(image_path: str) -> np.ndarray:
+    threads = 8
+    image = load_grayscale_image(image_path)
+    kernel_x, kernel_y = roberts_cross_kernels()
+    grad_x = multi_threaded_convolution(image, kernel_x, threads)
+    grad_y = multi_threaded_convolution(image, kernel_y, threads)
+    magnitude = np.hypot(grad_x, grad_y)
+    max_val = np.max(magnitude)
+    if max_val > 0:
+        magnitude = (magnitude / max_val) * 255.0
+    return magnitude.astype(np.float32) / 255.0
 
 if __name__ == "__main__":
     main()

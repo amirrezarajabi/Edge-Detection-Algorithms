@@ -121,6 +121,18 @@ def main() -> None:
     args.output_image = os.path.join(args.output_dir, os.path.basename(args.input_image))
     save_grayscale_image(edges, args.output_image)
 
+def run_sobel_edge(image_path: str) -> np.ndarray:
+    threads = 8
+    # return the edges normalized to 0-1 and with the same shape as the input image
+    image = load_grayscale_image(image_path)
+    kernel_x, kernel_y = sobel_kernels()
+    grad_x = multi_threaded_convolution(image, kernel_x, threads)
+    grad_y = multi_threaded_convolution(image, kernel_y, threads)
+    magnitude = np.hypot(grad_x, grad_y)
+    max_val = np.max(magnitude)
+    if max_val > 0:
+        magnitude = (magnitude / max_val) * 255.0
+    return magnitude.astype(np.float32) / 255.0
 
 if __name__ == "__main__":
     main()
